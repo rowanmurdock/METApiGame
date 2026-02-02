@@ -6,7 +6,6 @@ export default function EndScreen({ history, onRestart }) {
 
     return (
         <div className="screen-container">
-            <h1>Game Over!</h1>
             <h2>Total Score: {totalScore} points</h2>
 
             <div className="results-grid">

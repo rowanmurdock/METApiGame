@@ -71,6 +71,7 @@ export default function GameScreen({ onRoundComplete }) {
                     src={artData.primaryImageSmall}
                     alt={artData.title}
                     onError={handleImageError}
+
                 />
             </div>
             <div className="art-info">
