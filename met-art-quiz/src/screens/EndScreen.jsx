@@ -1,4 +1,5 @@
 import React from 'react';
+import './EndScreen.css';
 
 export default function EndScreen({ history, onRestart }) {
     const totalScore = history.reduce((acc, round) => acc + round.points, 0);
@@ -7,11 +8,10 @@ export default function EndScreen({ history, onRestart }) {
         <div className="screen-container">
             <h1>Game Over!</h1>
             <h2>Total Score: {totalScore} points</h2>
-            <p>(Remember: Lower is better)</p>
 
             <div className="results-grid">
                 {history.map((round, index) => (
-                    <div key={index} className="result-card" style={{ marginBottom: '20px', border: '1px solid #ccc', padding: '10px' }}>
+                    <div key={index} className="result-card">
                         <img src={round.image} alt={round.title} width="100" />
                         <div>
                             <strong>{round.title}</strong>

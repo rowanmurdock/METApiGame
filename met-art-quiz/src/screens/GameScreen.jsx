@@ -1,12 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './GameScreen.css';
 
-const parseYear = (dateString) => {
-    if (!dateString) return null;
-    const match = dateString.match(/\d{4}/);
-    return match ? parseInt(match[0], 10) : null;
-};
-
 export default function GameScreen({ onRoundComplete }) {
     const [artData, setArtData] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -15,6 +9,11 @@ export default function GameScreen({ onRoundComplete }) {
     useEffect(() => {
         fetchArt();
     }, []);
+
+    const handleImageError = () => {
+        fetchArt();
+    };
+
 
     const fetchArt = async () => {
         setLoading(true);
@@ -34,9 +33,7 @@ export default function GameScreen({ onRoundComplete }) {
                 );
                 data = await objectRes.json();
 
-                if (data.objectDate && parseYear(data.objectDate)) {
-                    validArtFound = true;
-                }
+                if (data && data.primaryImageSmall && data.primaryImageSmall !== "") { validArtFound = true; }
             }
             setArtData(data);
         } catch (error) {
@@ -49,16 +46,15 @@ export default function GameScreen({ onRoundComplete }) {
         e.preventDefault();
         if (!artData) return;
 
-        const actualYear = parseYear(artData.objectDate);
         const userGuess = parseInt(guess, 10);
 
-        const points = Math.abs(actualYear - userGuess);
+        const points = Math.abs(artData.objectEndDate - userGuess);
 
         const roundResult = {
             image: artData.primaryImageSmall,
             title: artData.title,
             artist: artData.artistDisplayName,
-            actualYear: actualYear,
+            actualYear: artData.objectEndDate,
             userGuess: userGuess,
             points: points
         };
@@ -74,7 +70,7 @@ export default function GameScreen({ onRoundComplete }) {
                 <img
                     src={artData.primaryImageSmall}
                     alt={artData.title}
-                    style={{ maxHeight: '100%', maxWidth: '100%' }}
+                    onError={handleImageError}
                 />
             </div>
             <div className="art-info">
@@ -85,7 +81,7 @@ export default function GameScreen({ onRoundComplete }) {
             <form onSubmit={handleSubmit}>
                 <input
                     type="number"
-                    placeholder="Year (e.g. 1990)"
+                    placeholder="Guess a year"
                     value={guess}
                     onChange={(e) => setGuess(e.target.value)}
                     required
