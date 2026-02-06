@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import StartScreen from './screens/StartScreen';
 import GameScreen from './screens/GameScreen';
 import EndScreen from './screens/EndScreen';
@@ -8,12 +8,57 @@ function App() {
   const [gameState, setGameState] = useState('start');
   const [round, setRound] = useState(1);
   const [history, setHistory] = useState([]);
+  const [fetchedArt, setFetchedArt] = useState([]);
+  const [preloadedArt, setPreloadedArt] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const startGame = () => {
+
+
+  useEffect(() => {
+    setLoading(true);
+    fetchArt().then(art => { setPreloadedArt(art); setLoading(false); });
+
+  }, []);
+
+  const startGame = async () => {
+    const artToUse = preloadedArt.length > 0 ? preloadedArt : await fetchArt();
+
+    setFetchedArt(artToUse);
     setRound(1);
     setHistory([]);
     setGameState('playing');
+    fetchArt().then(art => setPreloadedArt(art));
+
   };
+
+  const fetchArt = async () => {
+    const fetchedArt = [];
+    for (let i = 0; i < 5; i++) {
+      try {
+        const searchRes = await fetch(
+          'https://collectionapi.metmuseum.org/public/collection/v1/search?hasImages=true&q=painting'
+        );
+        const searchJson = await searchRes.json();
+
+        let validArtFound = false;
+        let data = null;
+
+        while (!validArtFound) {
+          const randomId = searchJson.objectIDs[Math.floor(Math.random() * searchJson.total)];
+          const objectRes = await fetch(
+            `https://collectionapi.metmuseum.org/public/collection/v1/objects/${randomId}`
+          );
+          data = await objectRes.json();
+
+          if (data && data.primaryImageSmall && data.primaryImageSmall !== "") { validArtFound = true; }
+        }
+        fetchedArt.push(data);
+      } catch (error) {
+        console.error("Error fetching art:", error);
+      }
+    }
+    return fetchedArt;
+  }
 
   const handleRoundComplete = (roundData) => {
     const newHistory = [...history, roundData];
@@ -28,11 +73,12 @@ function App() {
 
   return (
     <div className="App">
-      {gameState === 'start' && <StartScreen onStart={startGame} />}
+      {gameState === 'start' && <StartScreen isLoading={loading} onStart={startGame} />}
 
-      {gameState === 'playing' && (
+      {gameState === 'playing' && fetchedArt.length > 0 && (
         <GameScreen
           key={round}
+          artData={fetchedArt[round - 1]}
           onRoundComplete={handleRoundComplete}
         />
       )}
