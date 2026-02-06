@@ -13,7 +13,7 @@ function App() {
   const [loading, setLoading] = useState(false);
 
 
-
+  //start loading art on app start and after game start, so that we have art ready for the next game
   useEffect(() => {
     setLoading(true);
     fetchArt().then(art => { setPreloadedArt(art); setLoading(false); });
@@ -31,6 +31,8 @@ function App() {
 
   };
 
+
+  //uses MET api to fetch 5 random paintings and ensure they have images
   const fetchArt = async () => {
     const fetchedArt = [];
     for (let i = 0; i < 5; i++) {
@@ -49,7 +51,7 @@ function App() {
             `https://collectionapi.metmuseum.org/public/collection/v1/objects/${randomId}`
           );
           data = await objectRes.json();
-
+          //keep searching until we find one with a valid image to be displayed
           if (data && data.primaryImageSmall && data.primaryImageSmall !== "") { validArtFound = true; }
         }
         fetchedArt.push(data);
